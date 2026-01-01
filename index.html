@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NCE Learning Dashboard</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+<body class="bg-gray-50 text-slate-900">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        // ==================== ICONS (内置图标组件，零依赖) ====================
+        // 使用 Lucide 风格的 SVG，确保稳定运行
+        const IconBase = ({ children, className = "" }) => (
+            <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="24" height="24" viewBox="0 0 24 24" 
+                fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                className={className}
+            >
+                {children}
+            </svg>
+        );
+
+        const ChevronRight = ({ className }) => (
+            <IconBase className={className}><path d="m9 18 6-6-6-6"/></IconBase>
+        );
+        const ChevronDown = ({ className }) => (
+            <IconBase className={className}><path d="m6 9 6 6 6-6"/></IconBase>
+        );
+        const Menu = ({ className }) => (
+            <IconBase className={className}><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></IconBase>
+        );
+        const X = ({ className }) => (
+            <IconBase className={className}><path d="M18 6 6 18"/><path d="m6 6 12 12"/></IconBase>
+        );
+        const BookOpen = ({ className }) => (
+            <IconBase className={className}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></IconBase>
+        );
+        const Lightbulb = ({ className }) => (
+            <IconBase className={className}><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-1 1.5-2 1.5-3.5A6 6 0 0 0 6 8c0 1 .5 2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></IconBase>
+        );
+        const Zap = ({ className }) => (
+            <IconBase className={className}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></IconBase>
+        );
+
+        // ==================== DATA STRUCTURE ====================
+        const lessonsData = {
+            140: {
+                title: "Lesson 140 - He wants to know if...",
+                coverImage: "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=800&h=300&fit=crop",
+                icon: "📚",
+                knowledgePoints: [
+                    {
+                        title: "Passive Voice - Basic Structure",
+                        content: "The passive voice is formed with: be + past participle. It emphasizes the action or the receiver of the action rather than the doer.",
+                        examples: ["Active: They built this house in 1990.", "Passive: This house was built in 1990."]
+                    },
+                    {
+                        title: "When to Use Passive Voice",
+                        content: "Use passive voice when: (1) The doer is unknown, (2) The doer is unimportant, (3) You want to emphasize the action or receiver.",
+                        examples: ["My car was stolen. (doer unknown)", "English is spoken here. (doer unimportant)"]
+                    }
+                ],
+                textStudy: {
+                    text: "Graham Turner is asking his boss, Mr. Harmsworth, if he wants to know something. He explains that the newest employee, Mr. Corden, has been here for two weeks. Graham wants to know if Mr. Harmsworth likes him.",
+                    vocabulary: [
+                        { word: "employee", definition: "a person who works for someone", example: "He's been an employee here for five years." },
+                        { word: "hard-working", definition: "working with effort and energy", example: "She's very hard-working and never complains." },
+                        { word: "efficient", definition: "working well without wasting time or energy", example: "Our new system is much more efficient." }
+                    ]
+                },
+                drills: {
+                    sentenceTransformation: [
+                        { question: "Active: They speak English in Canada.", answer: "Passive: English is spoken in Canada.", hint: "Use 'is' + past participle of 'speak'" },
+                        { question: "Active: Someone stole my bicycle.", answer: "Passive: My bicycle was stolen.", hint: "Use 'was' + past participle of 'steal'" },
+                        { question: "Active: People grow rice in Asia.", answer: "Passive: Rice is grown in Asia.", hint: "Use 'is' + past participle of 'grow'" },
+                        { question: "Active: They built this bridge in 1965.", answer: "Passive: This bridge was built in 1965.", hint: "Use 'was' + past participle of 'build'" },
+                        { question: "Active: Someone has repaired the car.", answer: "Passive: The car has been repaired.", hint: "Use 'has been' + past participle of 'repair'" }
+                    ],
+                    fillInBlanks: [
+                        { question: "This letter _______ (write) in English.", answer: "was written", hint: "Think about the passive form of 'write' in past tense" },
+                        { question: "Coffee _______ (grow) in Brazil.", answer: "is grown", hint: "Use present simple passive" },
+                        { question: "The windows _______ (clean) yesterday.", answer: "were cleaned", hint: "Use past simple passive with plural subject" },
+                        { question: "This room _______ (use) for meetings.", answer: "is used", hint: "Use present simple passive" },
+                        { question: "All the tickets _______ (sell) last week.", answer: "were sold", hint: "Use past simple passive with plural subject" }
+                    ]
+                }
+            },
+            141: {
+                title: "Lesson 141 - Sally's first train ride",
+                coverImage: "https://images.unsplash.com/photo-1474487548417-781cb71495f3?w=800&h=300&fit=crop",
+                icon: "🚂",
+                knowledgePoints: [
+                    {
+                        title: "Passive Voice with Modals",
+                        content: "Modal verbs + be + past participle. Examples: can be done, should be finished, must be completed.",
+                        examples: ["This work can be finished today.", "The letter should be sent immediately.", "Rules must be followed."]
+                    },
+                    {
+                        title: "Passive Voice in Different Tenses",
+                        content: "Present: is/are done | Past: was/were done | Future: will be done | Present Perfect: has/have been done",
+                        examples: ["The work is done every day. (present)", "The work was done yesterday. (past)", "The work will be done tomorrow. (future)"]
+                    }
+                ],
+                textStudy: {
+                    text: "Last week, Sally went to the station with her father. They got on a train. Sally was very excited because it was her first train ride. The train moved very fast and Sally loved watching the countryside.",
+                    vocabulary: [
+                        { word: "ride", definition: "a journey in a vehicle", example: "We went for a ride in the country." },
+                        { word: "excited", definition: "feeling very happy and enthusiastic", example: "The children were excited about the trip." },
+                        { word: "countryside", definition: "land outside cities and towns", example: "We drove through beautiful countryside." }
+                    ]
+                },
+                drills: {
+                    sentenceTransformation: [
+                        { question: "Active: They can solve this problem.", answer: "Passive: This problem can be solved.", hint: "Use 'can be' + past participle" },
+                        { question: "Active: You must finish the work today.", answer: "Passive: The work must be finished today.", hint: "Use 'must be' + past participle" },
+                        { question: "Active: Someone will repair the roof tomorrow.", answer: "Passive: The roof will be repaired tomorrow.", hint: "Use 'will be' + past participle" },
+                        { question: "Active: They should answer the questions carefully.", answer: "Passive: The questions should be answered carefully.", hint: "Use 'should be' + past participle" },
+                        { question: "Active: We might cancel the meeting.", answer: "Passive: The meeting might be cancelled.", hint: "Use 'might be' + past participle" }
+                    ],
+                    fillInBlanks: [
+                        { question: "The problem can _______ (solve) easily.", answer: "be solved", hint: "Use 'be' + past participle after modal" },
+                        { question: "This book must _______ (return) by Friday.", answer: "be returned", hint: "Use 'be' + past participle after 'must'" },
+                        { question: "The car will _______ (repair) next week.", answer: "be repaired", hint: "Use 'be' + past participle after 'will'" },
+                        { question: "These rules should _______ (follow) strictly.", answer: "be followed", hint: "Use 'be' + past participle after 'should'" },
+                        { question: "The project might _______ (complete) early.", answer: "be completed", hint: "Use 'be' + past participle after 'might'" }
+                    ]
+                }
+            },
+            142: {
+                title: "Lesson 142 - Someone invited Sally to a party",
+                coverImage: "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=800&h=300&fit=crop",
+                icon: "🎉",
+                knowledgePoints: [
+                    {
+                        title: "Passive Voice with 'by' Phrase",
+                        content: "When mentioning the doer in passive voice, use 'by + agent'. However, 'by' phrase is often omitted when the doer is obvious or unimportant.",
+                        examples: ["The house was built by my grandfather.", "The letter was written by John.", "Coffee is grown by farmers in Brazil."]
+                    },
+                    {
+                        title: "Omitting the Agent",
+                        content: "In most passive sentences, we omit the agent because it's unknown, unimportant, or obvious from context.",
+                        examples: ["My wallet was stolen. (unknown)", "The building was completed. (unimportant)", "He was arrested. (obvious)"]
+                    }
+                ],
+                textStudy: {
+                    text: "Sally was invited to a party last week. She was told to arrive at 7 o'clock. When Sally arrived, she was greeted warmly by her friends. She was given a beautiful present. Everyone was pleased to see her.",
+                    vocabulary: [
+                        { word: "invite", definition: "to ask someone to come to an event", example: "We invited all our friends to the wedding." },
+                        { word: "greet", definition: "to welcome or say hello to someone", example: "She greeted us with a smile." },
+                        { word: "pleased", definition: "feeling happy or satisfied", example: "I'm very pleased with your progress." }
+                    ]
+                },
+                drills: {
+                    sentenceTransformation: [
+                        { question: "Active: Shakespeare wrote this play.", answer: "Passive: This play was written by Shakespeare.", hint: "Include 'by Shakespeare'" },
+                        { question: "Active: Bell invented the telephone.", answer: "Passive: The telephone was invented by Bell.", hint: "Use 'by Bell'" },
+                        { question: "Active: Someone broke the window.", answer: "Passive: The window was broken.", hint: "Omit the agent" },
+                        { question: "Active: Picasso painted this picture.", answer: "Passive: This picture was painted by Picasso.", hint: "Include 'by Picasso'" },
+                        { question: "Active: They arrested the thief.", answer: "Passive: The thief was arrested.", hint: "Omit the agent" }
+                    ],
+                    fillInBlanks: [
+                        { question: "This novel _______ (write) by Hemingway.", answer: "was written", hint: "Use past passive, agent included" },
+                        { question: "The bridge _______ (design) by a famous architect.", answer: "was designed", hint: "Use past passive with 'by' phrase" },
+                        { question: "My car _______ (repair) yesterday.", answer: "was repaired", hint: "Use past passive, no agent needed" },
+                        { question: "These photographs _______ (take) by my brother.", answer: "were taken", hint: "Use past passive plural with agent" },
+                        { question: "The message _______ (receive) this morning.", answer: "was received", hint: "Use past passive, no agent needed" }
+                    ]
+                }
+            },
+            143: {
+                title: "Lesson 143 - A walk through the woods",
+                coverImage: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&h=300&fit=crop",
+                icon: "🌲",
+                knowledgePoints: [
+                    {
+                        title: "Passive Voice - Present Perfect",
+                        content: "Present Perfect Passive: has/have been + past participle. Used for actions completed at an unspecified time before now.",
+                        examples: ["The work has been finished.", "All the tickets have been sold.", "The house has been painted recently."]
+                    },
+                    {
+                        title: "Active vs Passive - When to Choose",
+                        content: "Choose active when the doer is important. Choose passive when focusing on the action or when the doer is unknown/unimportant.",
+                        examples: ["Active: I wrote the report.", "Passive: The report was written yesterday."]
+                    }
+                ],
+                textStudy: {
+                    text: "Mrs. Anne Sterling did not think of the risk she was taking when she ran through a forest after two men. They had rushed up to her while she was having a picnic with her children and tried to steal her handbag. In the struggle, the bag was torn.",
+                    vocabulary: [
+                        { word: "risk", definition: "the possibility of danger or harm", example: "There's a risk of rain today." },
+                        { word: "struggle", definition: "a fight or effort to get free", example: "After a brief struggle, he escaped." },
+                        { word: "torn", definition: "pulled apart; ripped", example: "My shirt was torn in the accident." }
+                    ]
+                },
+                drills: {
+                    sentenceTransformation: [
+                        { question: "Active: They have finished the project.", answer: "Passive: The project has been finished.", hint: "Use 'has been' + past participle" },
+                        { question: "Active: Someone has stolen my laptop.", answer: "Passive: My laptop has been stolen.", hint: "Use 'has been' + past participle" },
+                        { question: "Active: We have cleaned all the rooms.", answer: "Passive: All the rooms have been cleaned.", hint: "Use 'have been' + past participle for plural" },
+                        { question: "Active: They have cancelled the flight.", answer: "Passive: The flight has been cancelled.", hint: "Use 'has been' + past participle" },
+                        { question: "Active: She has written three books.", answer: "Passive: Three books have been written by her.", hint: "Use 'have been' + past participle for plural" }
+                    ],
+                    fillInBlanks: [
+                        { question: "The homework _______ already _______ (finish).", answer: "has / been finished", hint: "Use present perfect passive" },
+                        { question: "All the cakes _______ _______ (eat).", answer: "have been eaten", hint: "Use present perfect passive for plural" },
+                        { question: "The new road _______ just _______ (complete).", answer: "has / been completed", hint: "Use present perfect passive with 'just'" },
+                        { question: "These letters _______ already _______ (send).", answer: "have / been sent", hint: "Use present perfect passive for plural" },
+                        { question: "The problem _______ _______ (solve) yet.", answer: "hasn't been solved", hint: "Use negative present perfect passive with 'yet'" }
+                    ]
+                }
+            },
+            144: {
+                title: "Lesson 144 - He will be served soon",
+                coverImage: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&h=300&fit=crop",
+                icon: "🍽️",
+                knowledgePoints: [
+                    {
+                        title: "Passive Voice - Future Tense",
+                        content: "Future Passive: will be + past participle. Used for actions that will happen in the future.",
+                        examples: ["The meeting will be held tomorrow.", "You will be informed of the decision.", "The work will be completed next week."]
+                    },
+                    {
+                        title: "Passive Voice - Summary",
+                        content: "Review: Present (is done), Past (was done), Future (will be done), Present Perfect (has been done), Modals (can be done).",
+                        examples: ["Present: The office is cleaned daily.", "Past: The office was cleaned yesterday.", "Future: The office will be cleaned tomorrow."]
+                    }
+                ],
+                textStudy: {
+                    text: "A man walked into a restaurant and sat down at a table. The waiter came up to him and said, 'Can I help you?' The man said, 'I want some food, please.' The waiter told him he would be served soon. After a few minutes, dinner was brought to him.",
+                    vocabulary: [
+                        { word: "serve", definition: "to give food or drinks to someone", example: "Dinner is served at 7 p.m." },
+                        { word: "waiter", definition: "a person who serves food in a restaurant", example: "The waiter brought us the menu." },
+                        { word: "customer", definition: "a person who buys goods or services", example: "The shop has many regular customers." }
+                    ]
+                },
+                drills: {
+                    sentenceTransformation: [
+                        { question: "Active: They will finish the work tomorrow.", answer: "Passive: The work will be finished tomorrow.", hint: "Use 'will be' + past participle" },
+                        { question: "Active: Someone will collect the rubbish.", answer: "Passive: The rubbish will be collected.", hint: "Use 'will be' + past participle" },
+                        { question: "Active: They will invite you to the party.", answer: "Passive: You will be invited to the party.", hint: "Use 'will be' + past participle" },
+                        { question: "Active: We will announce the results soon.", answer: "Passive: The results will be announced soon.", hint: "Use 'will be' + past participle" },
+                        { question: "Active: They will build a new school here.", answer: "Passive: A new school will be built here.", hint: "Use 'will be' + past participle" }
+                    ],
+                    fillInBlanks: [
+                        { question: "The package _______ (deliver) tomorrow.", answer: "will be delivered", hint: "Use future passive" },
+                        { question: "You _______ (inform) about the changes.", answer: "will be informed", hint: "Use future passive" },
+                        { question: "The documents _______ (sign) next week.", answer: "will be signed", hint: "Use future passive" },
+                        { question: "New employees _______ (train) next month.", answer: "will be trained", hint: "Use future passive" },
+                        { question: "The exhibition _______ (open) on Monday.", answer: "will be opened", hint: "Use future passive" }
+                    ]
+                }
+            }
+        };
+
+        // ==================== COMPONENTS ====================
+
+        const Sidebar = ({ lessons, currentLesson, onLessonChange, isOpen, onClose }) => {
+            return (
+                <div className="flex flex-col h-full">
+                    {isOpen && (
+                        <div 
+                            className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+                            onClick={onClose}
+                        />
+                    )}
+                    
+                    <div className={`
+                        fixed lg:sticky top-0 left-0 h-screen bg-white border-r border-gray-200 
+                        transition-transform duration-300 z-50 flex flex-col
+                        ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+                        w-64
+                    `}>
+                        <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <BookOpen className="w-5 h-5 text-blue-600" />
+                                <span className="font-semibold text-gray-900">NCE Book 1</span>
+                            </div>
+                            <button onClick={onClose} className="lg:hidden">
+                                <X className="w-5 h-5 text-gray-600" />
+                            </button>
+                        </div>
+                        
+                        <div className="flex-1 overflow-y-auto p-4">
+                            <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                                Lessons 140-144
+                            </div>
+                            {lessons.map(lessonId => (
+                                <button
+                                    key={lessonId}
+                                    onClick={() => {
+                                        onLessonChange(lessonId);
+                                        onClose();
+                                    }}
+                                    className={`
+                                        w-full text-left px-3 py-2 rounded-md mb-1 transition-colors
+                                        flex items-center gap-2
+                                        ${currentLesson === lessonId 
+                                            ? 'bg-gray-100 text-gray-900 font-medium' 
+                                            : 'text-gray-700 hover:bg-gray-50'
+                                        }
+                                    `}
+                                >
+                                    <span className="text-lg">{lessonsData[lessonId].icon}</span>
+                                    <span className="text-sm">Lesson {lessonId}</span>
+                                </button>
+                            ))}
+                        </div>
+                        
+                        <div className="p-4 border-t border-gray-200 text-xs text-gray-500">
+                            Massive Practice Dashboard
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const ToggleSection = ({ title, children, defaultOpen = false }) => {
+            const [isOpen, setIsOpen] = useState(defaultOpen);
+            
+            return (
+                <div className="border border-gray-200 rounded-lg mb-4 overflow-hidden bg-white shadow-sm">
+                    <button
+                        onClick={() => setIsOpen(!isOpen)}
+                        className="w-full px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors flex items-center justify-between"
+                    >
+                        <span className="font-medium text-gray-900">{title}</span>
+                        {isOpen ? <ChevronDown className="w-5 h-5 text-gray-500" /> : <ChevronRight className="w-5 h-5 text-gray-500" />}
+                    </button>
+                    {isOpen && (
+                        <div className="p-4 border-t border-gray-100">
+                            {children}
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const QuizCard = ({ question, answer, hint, index }) => {
+            const [showAnswer, setShowAnswer] = useState(false);
+            
+            return (
+                <div className="border border-gray-200 rounded-lg p-4 mb-3 bg-white hover:border-blue-300 hover:shadow-md transition-all">
+                    <div className="flex items-start gap-3">
+                        <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm font-semibold flex-shrink-0">
+                            {index}
+                        </div>
+                        <div className="flex-1">
+                            <div className="text-gray-900 mb-2 font-medium">{question}</div>
+                            
+                            {!showAnswer && hint && (
+                                <div className="text-sm text-gray-500 italic mb-3 flex items-center gap-1">
+                                    <Lightbulb className="w-3 h-3" /> {hint}
+                                </div>
+                            )}
+                            
+                            <button
+                                onClick={() => setShowAnswer(!showAnswer)}
+                                className="text-sm text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1"
+                            >
+                                {showAnswer ? 'Hide Answer' : 'Show Answer'}
+                            </button>
+                            
+                            {showAnswer && (
+                                <div className="mt-3 pt-3 border-t border-gray-100 animate-fade-in">
+                                    <div className="text-xs font-bold text-gray-500 uppercase mb-1">Correct Answer</div>
+                                    <div className="text-green-700 bg-green-50 px-3 py-2 rounded-md border border-green-100 font-medium">
+                                        {answer}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const LessonContent = ({ lessonData }) => {
+            const [activeTab, setActiveTab] = useState('knowledge');
+            
+            const tabs = [
+                { id: 'knowledge', label: 'Knowledge Points', icon: Lightbulb },
+                { id: 'text', label: 'Text Study', icon: BookOpen },
+                { id: 'drills', label: 'Massive Drills', icon: Zap }
+            ];
+            
+            return (
+                <div className="max-w-4xl mx-auto pb-10">
+                    {/* Header Image */}
+                    <div className="w-full h-48 rounded-xl overflow-hidden mb-6 shadow-sm relative group">
+                        <img 
+                            src={lessonData.coverImage} 
+                            alt="Lesson cover"
+                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent flex items-end p-6">
+                             <h1 className="text-white text-3xl font-bold shadow-sm">{lessonData.title}</h1>
+                        </div>
+                    </div>
+                    
+                    {/* Tabs */}
+                    <div className="border-b border-gray-200 mb-6 sticky top-0 bg-white/95 backdrop-blur z-20">
+                        <div className="flex gap-4 overflow-x-auto pb-1">
+                            {tabs.map(tab => {
+                                const Icon = tab.icon;
+                                const isActive = activeTab === tab.id;
+                                return (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => setActiveTab(tab.id)}
+                                        className={`
+                                            px-4 py-3 font-medium text-sm transition-all flex items-center gap-2 whitespace-nowrap border-b-2
+                                            ${isActive
+                                                ? 'border-blue-600 text-blue-600'
+                                                : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300'
+                                            }
+                                        `}
+                                    >
+                                        <Icon className={`w-4 h-4 ${isActive ? 'text-blue-600' : 'text-gray-400'}`} />
+                                        {tab.label}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                    
+                    {/* Tab Content */}
+                    <div className="animate-fade-in-up">
+                        {activeTab === 'knowledge' && (
+                            <div>
+                                {lessonData.knowledgePoints.map((point, idx) => (
+                                    <ToggleSection key={idx} title={point.title} defaultOpen={idx === 0}>
+                                        <p className="text-gray-700 mb-4 leading-relaxed">{point.content}</p>
+                                        <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-md">
+                                            <div className="text-xs font-bold text-blue-900 uppercase tracking-wide mb-2">Examples</div>
+                                            <ul className="space-y-2">
+                                                {point.examples.map((ex, i) => (
+                                                    <li key={i} className="text-sm text-blue-900 font-medium flex items-start gap-2">
+                                                        <span className="text-blue-400 mt-1">•</span> {ex}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    </ToggleSection>
+                                ))}
+                            </div>
+                        )}
+                        
+                        {activeTab === 'text' && (
+                            <div>
+                                <div className="bg-white border border-gray-200 rounded-xl p-8 mb-6 shadow-sm">
+                                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                                        <BookOpen className="w-5 h-5 text-gray-400"/> Original Text
+                                    </h3>
+                                    <p className="text-gray-800 leading-8 text-lg font-serif">{lessonData.textStudy.text}</p>
+                                </div>
+                                
+                                <ToggleSection title="📖 Key Vocabulary" defaultOpen>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {lessonData.textStudy.vocabulary.map((item, idx) => (
+                                            <div key={idx} className="bg-gray-50 rounded-lg p-4 border border-gray-100 hover:border-gray-300 transition-colors">
+                                                <div className="font-bold text-gray-900 text-lg mb-1">{item.word}</div>
+                                                <div className="text-sm text-gray-600 mb-2">{item.definition}</div>
+                                                <div className="text-sm text-gray-500 italic bg-white p-2 rounded border border-gray-100">"{item.example}"</div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </ToggleSection>
+                            </div>
+                        )}
+                        
+                        {activeTab === 'drills' && (
+                            <div>
+                                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6 flex items-start gap-3">
+                                    <Zap className="w-6 h-6 text-yellow-600 flex-shrink-0" />
+                                    <div>
+                                        <div className="font-bold text-yellow-900">Massive Practice Zone</div>
+                                        <div className="text-sm text-yellow-800 mt-1">
+                                            Use the "Show Answer" button to check your work. Repetition is key to mastering Passive Voice.
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <ToggleSection title="🔄 Sentence Transformation" defaultOpen>
+                                    {lessonData.drills.sentenceTransformation.map((drill, idx) => (
+                                        <QuizCard
+                                            key={idx}
+                                            index={idx + 1}
+                                            question={drill.question}
+                                            answer={drill.answer}
+                                            hint={drill.hint}
+                                        />
+                                    ))}
+                                </ToggleSection>
+                                
+                                <ToggleSection title="✏️ Fill in the Blanks">
+                                    {lessonData.drills.fillInBlanks.map((drill, idx) => (
+                                        <QuizCard
+                                            key={idx}
+                                            index={idx + 1}
+                                            question={drill.question}
+                                            answer={drill.answer}
+                                            hint={drill.hint}
+                                        />
+                                    ))}
+                                </ToggleSection>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        function App() {
+            const [currentLesson, setCurrentLesson] = useState(140);
+            const [sidebarOpen, setSidebarOpen] = useState(false);
+            const lessons = Object.keys(lessonsData).map(Number);
+            
+            return (
+                <div className="flex h-screen bg-gray-50 overflow-hidden font-sans">
+                    <Sidebar
+                        lessons={lessons}
+                        currentLesson={currentLesson}
+                        onLessonChange={setCurrentLesson}
+                        isOpen={sidebarOpen}
+                        onClose={() => setSidebarOpen(false)}
+                    />
+                    
+                    <div className="flex-1 flex flex-col h-screen overflow-hidden">
+                        <div className="bg-white border-b border-gray-200 px-4 py-3 z-30 lg:hidden flex-shrink-0">
+                            <div className="flex items-center gap-3">
+                                <button
+                                    onClick={() => setSidebarOpen(true)}
+                                    className="p-2 hover:bg-gray-100 rounded-md text-gray-600"
+                                >
+                                    <Menu className="w-5 h-5" />
+                                </button>
+                                <div className="flex items-center gap-2 text-sm text-gray-500">
+                                    <span>NCE Book 1</span>
+                                    <ChevronRight className="w-4 h-4" />
+                                    <span className="text-gray-900 font-medium">Lesson {currentLesson}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className="flex-1 overflow-y-auto p-4 lg:p-8">
+                            <LessonContent lessonData={lessonsData[currentLesson]} />
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Mount the app
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        .animate-fade-in-up {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+    </style>
+</body>
+</html>
